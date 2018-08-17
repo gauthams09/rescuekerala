@@ -1,0 +1,36 @@
+{% extends 'mainapp/request_details.html' %}
+{% load bootstrap3 %}
+
+{% block updateform %}
+
+  <form method="post">
+  {% csrf_token %}
+  <div class="row">
+    <div class="col-md-12 center"><b>PLEASE REGISTER <a href="{url 'registerview'}">HERE</a> FIRST IF YOU ARE NOT A VOLUNTEER</b></div>
+  </div>
+  <div class="row">
+    <div class="col-md-6"><b>Volunteer phone</b></div>
+    <input type="text" name="volunteer_phone"/>
+  </div>
+  <div class="row">
+    <div class="col-md-6"><b>Request status</b></div>
+    <div class="col-md-6">
+      <select name="status">
+        {% for status, status_display in volunteer_status %}
+          <option value="{{ status }}">{{ status_display }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+  <div class="row">
+  <div class="col-md-6"><b>Volunteer Comments</b></div>
+  <div class="col-md-6"><input type="text" name="volunteer_comments"/></div>
+  </div>
+
+  {% buttons %}
+  <button type="submit" class="btn btn-primary">
+  {% bootstrap_icon "star" %} Update details
+  </button>
+  {% endbuttons %}
+  </form>
+{% endblock %}

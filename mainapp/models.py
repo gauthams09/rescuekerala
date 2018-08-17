@@ -21,6 +21,9 @@ districts = (
 status_types =(
     ('new', 'New'),
     ('pro', 'In progess'),
+    ('pending', 'Pending'),
+    ('bng_hnd', 'Being Handled'),
+    ('handled', 'Handled by Volunteer'),
     ('sup', 'Supplied'),
 )
 
@@ -224,3 +227,17 @@ class Person(models.Model):
     added_at = models.DateTimeField(auto_now_add=True)
     def __str__(self):
         return self.name
+
+class RequestChanges(models.Model):
+    volunteer = models.ForeignKey(Volunteer, on_delete=models.CASCADE)
+    request = models.ForeignKey(Request, on_delete=models.CASCADE)
+    from_status = models.CharField(
+            max_length = 10,
+            choices = status_types
+        )
+    to_status = models.CharField(
+            max_length = 10,
+            choices = status_types
+        )
+    volunteer_comments = models.CharField(max_length=300, verbose_name='Volunteer comments', blank=True)
+    update_ts = models.DateTimeField(auto_now_add=True)

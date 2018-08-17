@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% load bootstrap3 %}
+
+{% block content %}
+
+<div class="row">
+  <div class="col-md-12 center"><b>You can update a request status if you are a volunteer. Please provide request ID below</b></div>
+</div>
+  <form action="/request_update" method="get">
+  <div class="row">
+    <div class="col-md-4"><b>Request ID</b></div>
+    <div class="col-md-8"><input type="text" name="request_id"/></div>
+  </div></br>
+  <div class="row">
+    <div class="col-md-12 center">
+      {% buttons %}
+      <button type="submit" class="btn btn-primary">
+      {% bootstrap_icon "star" %} Submit
+      </button>
+      {% endbuttons %}
+    </div>
+  </div>
+
+  </form>
+
+{% endblock %}

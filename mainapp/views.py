@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.generic.edit import CreateView
 from django.views.generic.base import TemplateView
-from .models import Request, Volunteer, DistrictManager, Contributor, DistrictNeed, Person, RescueCamp
+from .models import Request, Volunteer, DistrictManager, Contributor, DistrictNeed, Person, RescueCamp, RequestChanges
 import django_filters
 from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.http import JsonResponse
@@ -139,7 +139,11 @@ def request_details(request, request_id=None):
         req_data = Request.objects.get(id=request_id)
     except:
         return HttpResponseRedirect("/error?error_text={}".format('Sorry, we couldnt fetch details for that request'))
-    return render(request, 'mainapp/request_details.html', {'filter' : filter, 'req': req_data })
+    try:
+        req_updates = RequestChanges.objects.filter(request=req_data)
+    except:
+        pass
+    return render(request, 'mainapp/request_details_view.html', {'filter' : filter, 'req': req_data, 'req_updates' : req_updates})
 
 class DistrictManagerFilter(django_filters.FilterSet):
     class Meta:
@@ -203,7 +207,7 @@ class PersonForm(forms.ModelForm):
         'address',
         'notes'
         ]
-       
+
        widgets = {
            'address': forms.Textarea(attrs={'rows':3}),
            'notes': forms.Textarea(attrs={'rows':3}),
@@ -220,7 +224,7 @@ class PersonForm(forms.ModelForm):
 class AddPerson(SuccessMessageMixin,LoginRequiredMixin,CreateView):
     login_url = '/login/'
     model = Person
-    template_name='mainapp/add_person.html'  
+    template_name='mainapp/add_person.html'
     form_class = PersonForm
     success_url = '/add_person/'
     success_message = "'%(name)s' registered successfully"
@@ -260,3 +264,42 @@ def find_people(request):
     page = request.GET.get('page')
     people = paginator.get_page(page)
     return render(request, 'mainapp/people.html', {'filter': filter , "data" : people })
+
+class RequestFetch(TemplateView):
+    template_name = "mainapp/request_fetch.html"
+
+def RequestUpdateView(request):
+    try:
+        request_id=request.GET.get('request_id')
+    except:
+        return HttpResponseRedirect("/error?error_text={}".format('Please provide a request ID'))
+    if request.method== "GET":
+        try:
+            request_obj = Request.objects.get(id=request_id)
+        except:
+            return HttpResponseRedirect("/error?error_text={}".format('Sorry, we couldnt fetch details for that request'))
+        volunteer_status = (
+            ('pending', 'Pending'),
+            ('bng_hnd', 'Being Handled'),
+            ('handled', 'Handled'))
+        return render(request, 'mainapp/request_update_form.html', {"req" : request_obj, "volunteer_status" : volunteer_status})
+
+    else:
+        try:
+            volunteer_phone = request.POST.get('volunteer_phone')
+            volunteer = Volunteer.objects.get(phone=volunteer_phone)
+        except:
+            return HttpResponseRedirect("/error?error_text={}".format('Please register as a volunteer first'))
+        try:
+            request_obj = Request.objects.get(id=request_id)
+            from_status = request_obj.status
+            to_status = request.POST.get('status')
+            volunteer_comments = request.POST.get('volunteer_comments')
+            if not volunteer_comments:
+                return HttpResponseRedirect("/error?error_text={}".format('Please provide valid comment'))
+            RequestChanges.objects.create(volunteer=volunteer, request=request_obj, from_status=from_status, to_status=to_status, volunteer_comments=volunteer_comments)
+            request_obj.status = to_status
+            request_obj.save()
+        except:
+            return HttpResponseRedirect("/error?error_text={}".format('Sorry, we couldnt update details for that request'))
+        return redirect('requestdetailsview', request_id = request_id)

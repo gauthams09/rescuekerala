@@ -2,11 +2,8 @@
 {% load bootstrap3 %}
 
 {% block content %}
-
-<form action="{%url 'requestlistview' %}" method="get" class="text-center">
-       {{ filter.form.as_p }}
-       <input value="View requests" class="btn btn-primary" type="submit" />
- </form>
+{% block filterform %}
+{% endblock %}
  <div class="table-responsive">
   <table class="table">
     <thead>
@@ -16,6 +13,9 @@
     </thead>
 
     <tbody>
+      <tr>
+        <td><b> Request ID </b></td><td>{{ req.id }}</td>
+      </tr>
       <tr>
         <td><b> District : </b></td><td>{{ req.get_district_display }}</td>
       </tr>
@@ -46,8 +46,15 @@
       <tr>
         <td><b> Date : </b></td><td>{{ req.dateadded }}</td>
       </tr>
+      <tr>
+        <td><b> Status </b></td><td>{{ req.status }} <a class="btn btn-sm btn-success" href="/request_update?request_id={{ req.id }}">Edit</a></td>
+      </tr>
     </tbody>
   </table>
 
 </div>
+{% block updateform %}
+{% endblock %}
+{% block updatedetails %}
+{% endblock %}
 {% endblock %}
